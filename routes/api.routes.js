@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import verifyOrigin from "../middlewares/allowOrigin.middleware.js";
 import verifyJWTToken from "../middlewares/firebase.jwt.middleware.js";
+import { createFood } from "../utils/mongodbCRUD.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,6 +22,16 @@ router.get("/", (req, res) => {
 
 router.get("/data", verifyOrigin, (req, res) => {
   return res.status(200).json(mockData);
+});
+
+router.post("/add-data", verifyOrigin, async (req, res) => {
+  const data = await createFood({
+    ...req.body,
+    name: "gele-bi",
+    createdAt: Date.now(),
+  });
+
+  return res.status(200).send(data);
 });
 
 router.get("/secure-data", verifyOrigin, verifyJWTToken, (req, res) => {
