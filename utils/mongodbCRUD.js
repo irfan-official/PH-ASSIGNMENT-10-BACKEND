@@ -1,20 +1,24 @@
 import connectDB from "../connections/mongodb.connection.js";
 import { ObjectId } from "mongodb";
 
-export async function createFood(data) {
+export async function createOne({ data, collectionName }) {
   const db = await connectDB();
-  const result = await db.collection("foods").insertOne(data);
-  return result;
+  return db.collection(collectionName).insertOne(data);
 }
 
-export async function getAllFoods() {
+export async function find({ data, collectionName }) {
   const db = await connectDB();
-  return db.collection("foods").find().toArray();
+  return db.collection(collectionName).find().toArray();
 }
 
-export async function getFoodById(id) {
+export async function findOne({ data, collectionName }) {
   const db = await connectDB();
-  return db.collection("foods").findOne({ _id: new ObjectId(id) });
+  return db.collection(collectionName).findOne(data);
+}
+
+export async function findById(id) {
+  const db = await connectDB();
+  return db.collection(collectionName).findOne({ _id: new ObjectId(id) });
 }
 
 export async function updateFood(id, updateObj) {

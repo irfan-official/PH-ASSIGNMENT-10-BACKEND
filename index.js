@@ -36,6 +36,10 @@ app.use("/api/v1/", ApiRouter);
 
 app.use((err, req, res, next) => {
   console.log("Error ==> ", err.message);
+  return res.status(404).json({
+    success: false,
+    message: err.message,
+  });
 });
 
 app.listen(port, () => {
