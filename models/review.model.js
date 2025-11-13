@@ -96,27 +96,27 @@ class Review {
 
     Object.assign(
       this,
-      { ...validData, favorites: [] },
+      { ...validData, loved: [] },
       {
         createdAt: new Date().toISOString().replace("Z", "+00:00"),
       }
     );
   }
-  addFavorite(user) {
+  addLovedUser(user) {
     if (!(user instanceof ObjectId)) {
       throw new TypeError("favorite user must be a valid MongoDB ObjectId");
     }
-    if (!this.favorites.find((u) => u.equals(user))) {
-      this.favorites.push(user);
+    if (!this.loved.find((u) => u.equals(user))) {
+      this.loved.push(user);
     }
   }
 
-  removeFavorite(user) {
+  removeLovedUser(user) {
     if (!(user instanceof ObjectId)) {
       throw new TypeError("favorite user must be a valid MongoDB ObjectId");
     }
 
-    this.favorites = this.favorites.filter((u) => !u.equals(user));
+    this.loved = this.loved.filter((u) => !u.equals(user));
   }
 }
 

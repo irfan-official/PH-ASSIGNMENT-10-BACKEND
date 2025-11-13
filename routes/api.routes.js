@@ -4,7 +4,10 @@ import path from "path";
 import { fileURLToPath } from "url";
 import verifyOrigin from "../middlewares/allowOrigin.middleware.js";
 import verifyJWTToken from "../middlewares/firebase.jwt.middleware.js";
+
 import { createOne, find, findOne } from "../utils/mongodbCRUD.js";
+import { ObjectId } from "mongodb";
+import connectDB from "../connections/mongodb.connection.js";
 
 import Comment from "../models/comment.model.js";
 import Review from "../models/review.model.js";
@@ -154,11 +157,109 @@ router.post(
   }
 );
 
-// user,
-//   foodName,
-//   image,
-//   category,
-//   ratings,
-//   restaurantName,
-//   location,
-//   reviewText,
+router.get("/shows/all-reviews", async (req, res, next) => {
+  try {
+    const reviews = await find({
+      data: {},
+      collectionName: "reviews",
+    });
+    return res.status(200).json({
+      success: true,
+      data: reviews,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/shows/my-reviews", async (req, res, next) => {
+  const { name, email } = req.body;
+  try {
+    const user = await findOne({
+      data: {
+        name,
+        email,
+      },
+      collectionName: "users",
+    });
+
+    const reviews = await find({
+      data: {
+        user: new ObjectId(user._id),
+      },
+      collectionName: "reviews",
+    });
+    return res.status(200).json({
+      success: true,
+      data: reviews,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/shows/loved-reviews", async (req, res, next) => {
+  try {
+    const { name, email } = req.query;
+    const user = await findOne({
+      data: {
+        name,
+        email,
+      },
+      collectionName: "users",
+    });
+
+    const reviews = await find({
+      data: {
+        loved: new ObjectId(user._id),
+      },
+      collectionName: "reviews",
+    });
+    return res.status(200).json({
+      success: true,
+      data: reviews,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/add/loved-reviews", async (req, res, next) => {
+  try {
+    const { name, email, reviewId } = req.body;
+
+    const user = await findOne({
+      data: { name, email },
+      collectionName: "users",
+    });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    const db = await connectDB();
+
+    const updateResult = await db
+      .collection("reviews")
+      .updateOne(
+        { _id: new ObjectId(reviewId) },
+        { $addToSet: { loved: new ObjectId(user._id) } }
+      );
+
+    if (updateResult.modifiedCount === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No review updated (maybe already loved or invalid reviewId)",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Review added to loved list successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+});
